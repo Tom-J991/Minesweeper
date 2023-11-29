@@ -6,7 +6,8 @@ void Init();
 void Update();
 void Draw();
 
-void DrawCell(int x, int y, int size);
+void DrawCell(int x, int y);
+void DrawRestart(int x, int y);
 void FloodFill(int x, int y);
 
 struct Cell
@@ -15,9 +16,19 @@ struct Cell
     bool isBomb = false;
     bool flagged = false;
     bool hovered = false;
+    bool held = false;
     bool clicked = false;
 };
 Cell **board = nullptr;
+
+Cell *restartBtn = nullptr;
+
+const int cellNeighbors[9][2] = // Neighbor lookup
+{
+    { -1,  1 }, { 0,  1 }, { 1,  1 },
+    { -1,  0 }, { 0,  0 }, { 1,  0 },
+    { -1, -1 }, { 0, -1 }, { 1, -1 }
+};
 
 const int boardWidth = 10;
 const int boardHeight = 10;
@@ -26,9 +37,12 @@ const int cellSize = 40;
 int flagCount = 0;
 int bombCount = 0;
 int correctFlags = 0;
+
 bool gameStart = false;
 bool gameOver = false;
 bool gameWon = false;
+
+bool firstClick = false;
 
 int main()
 {
@@ -47,6 +61,8 @@ int main()
     }
     if (board == nullptr)
         return 0;
+
+    restartBtn = new Cell();
 
     Init();
 
@@ -70,6 +86,8 @@ int main()
     }
     delete[] board;
 
+    delete restartBtn;
+
     CloseWindow();
 
 	return 0;
@@ -77,7 +95,14 @@ int main()
 
 void Init()
 {
+    gameStart = false;
+    gameWon = false;
+    gameOver = false;
+
+    firstClick = false;
+
     // Set bombs & defaults
+    bombCount = 0;
     for (int i = 0; i < boardHeight; i++)
     {
         for (int j = 0; j < boardWidth; j++)
@@ -96,15 +121,9 @@ void Init()
         }
     }
     flagCount = bombCount;
+    correctFlags = 0;
 
     // Set values based on neighbors.
-    const int neighbors[9][2] = // Neighbor lookup
-    {
-        { -1,  1 }, { 0,  1 }, { 1,  1 },
-        { -1,  0 }, { 0,  0 }, { 1,  0 },
-        { -1, -1 }, { 0, -1 }, { 1, -1 }
-    };
-
     for (int i = 0; i < boardHeight; i++)
     {
         for (int j = 0; j < boardWidth; j++)
@@ -113,7 +132,7 @@ void Init()
                 continue;
 
             int neighborBombs = 0;
-            for (const int *offset : neighbors)
+            for (const int *offset : cellNeighbors)
             {
                 if (j + offset[0] < 0 || j + offset[0] >= boardWidth || i + offset[1] < 0 || i + offset[1] >= boardHeight)
                     continue;
@@ -129,12 +148,33 @@ void Init()
 void Update()
 {
     // Game Logic
-    if (gameOver || gameWon)
-        return;
-
     int mouseX = GetMouseX() / cellSize;
     int mouseY = GetMouseY() / cellSize;
 
+    // Handle Restart Button
+    if (IsMouseButtonUp(MOUSE_BUTTON_LEFT))
+    {
+        restartBtn->held = false;
+    }
+    if (mouseX == boardWidth + 1 && mouseY == 1)
+    {
+        restartBtn->hovered = true;
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        {
+            restartBtn->held = true;
+        }
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+            Init();
+    }
+    else
+    {
+        restartBtn->hovered = false;
+    }
+
+    if (gameOver || gameWon) // Don't update board if won or lost.
+        return;
+
+    // Update board.
     for (int i = 0; i < boardHeight; i++)
     {
         for (int j = 0; j < boardWidth; j++)
@@ -152,9 +192,9 @@ void Update()
                         else if (board[j][i].value == 0)
                         {
                             FloodFill(j-1, i);
-                            FloodFill(j, i-1);
+                            FloodFill(j,   i-1);
                             FloodFill(j+1, i);
-                            FloodFill(j, i+1);
+                            FloodFill(j,   i+1);
 
                             FloodFill(j-1, i-1);
                             FloodFill(j+1, i-1);
@@ -191,6 +231,7 @@ void Update()
         }
     }
 
+    // Check win condition.
     if (correctFlags == bombCount)
     {
         gameWon = true;
@@ -206,7 +247,7 @@ void Draw()
         {
             for (int j = 0; j < boardWidth; j++)
             {
-                DrawCell(j, i, cellSize);
+                DrawCell(j, i);
             }
         }
     }
@@ -214,6 +255,8 @@ void Draw()
     // Draw UI.
     std::string flagText = "Flags: " + std::to_string(flagCount);
     DrawText(flagText.c_str(), boardWidth * cellSize + cellSize, boardHeight * cellSize - cellSize/2, cellSize/2, BLACK);
+
+    DrawRestart(boardWidth + 1, 1);
 
     if (gameOver)
     {
@@ -229,15 +272,15 @@ void Draw()
     }
 }
 
-void DrawCell(int x, int y, int size)
+void DrawCell(int x, int y)
 {
     Cell &cell = board[x][y];
 
-    int halfSize = size/2;
+    int halfSize = cellSize/2;
 
     std::string text = std::to_string(cell.value);
 
-    int fontSize = size/2;
+    int fontSize = cellSize/2;
     int textHalfWidth = MeasureText(text.c_str(), fontSize) / 2;
     int textHalfHeight = fontSize / 2;
 
@@ -247,8 +290,8 @@ void DrawCell(int x, int y, int size)
     else if (cell.hovered)
         fillColor = BLUE;
 
-    DrawRectangle(x * size, y * size, size, size, fillColor);
-    DrawRectangleLines(x * size, y * size, size, size, BLACK);
+    DrawRectangle(x * cellSize, y * cellSize, cellSize, cellSize, fillColor);
+    DrawRectangleLines(x * cellSize, y * cellSize, cellSize, cellSize, BLACK);
 
     bool drawText = true;
     if (cell.isBomb)
@@ -256,7 +299,7 @@ void DrawCell(int x, int y, int size)
         text = "B";
         drawText = true;
     }
-    else if (cell.value <= 0)
+    else if (cell.value <= 0 && !cell.flagged)
         drawText = false;
 
     if (cell.clicked || cell.flagged)
@@ -265,23 +308,66 @@ void DrawCell(int x, int y, int size)
             text = "F";
 
         if (drawText == true)
-            DrawText(text.c_str(), x * size + halfSize - textHalfWidth, y * size + halfSize - textHalfHeight, fontSize, BLACK);
+            DrawText(text.c_str(), x * cellSize + halfSize - textHalfWidth, y * cellSize + halfSize - textHalfHeight, fontSize, BLACK);
     }
+}
+
+void DrawRestart(int x, int y)
+{
+    int halfSize = cellSize / 2;
+
+    std::string text = ":)";
+
+    int fontSize = cellSize / 2;
+    int textHalfWidth = MeasureText(text.c_str(), fontSize) / 2;
+    int textHalfHeight = fontSize / 2;
+
+    Color fillColor = LIGHTGRAY;
+    if (restartBtn->held)
+    {
+        text = ":O";
+        fillColor = WHITE;
+    }
+    else if (restartBtn->hovered)
+    {
+        fillColor = BLUE;
+    }
+
+    if (gameOver)
+    {
+        text = "x(";
+    }
+
+    DrawRectangle(x * cellSize, y * cellSize, cellSize, cellSize, fillColor);
+    DrawRectangleLines(x * cellSize, y * cellSize, cellSize, cellSize, BLACK);
+    DrawText(text.c_str(), x * cellSize + halfSize - textHalfWidth, y * cellSize + halfSize - textHalfHeight, fontSize, BLACK);
 }
 
 void FloodFill(int x, int y)
 {
     if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight)
         return;
-    if (board[x][y].value > 1 || board[x][y].isBomb == true || board[x][y].clicked == true)
+    if (board[x][y].isBomb == true || board[x][y].clicked == true)
+        return;
+
+    int emptyNeighbors = 0;
+    for (const int *offset : cellNeighbors)
+    {
+        if (x + offset[0] < 0 || x + offset[0] >= boardWidth || y + offset[1] < 0 || y + offset[1] >= boardHeight)
+            continue;
+        if (board[x + offset[0]][y + offset[1]].value <= 0 && board[x + offset[0]][y + offset[1]].isBomb == false)
+            emptyNeighbors++;
+    }
+
+    if (emptyNeighbors <= 0)
         return;
 
     board[x][y].clicked = true;
 
     FloodFill(x-1, y);
-    FloodFill(x, y-1);
+    FloodFill(x,   y-1);
     FloodFill(x+1, y);
-    FloodFill(x, y+1);
+    FloodFill(x,   y+1);
 
     FloodFill(x-1, y-1);
     FloodFill(x+1, y-1);
