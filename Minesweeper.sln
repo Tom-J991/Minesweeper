@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Minesweeper", "Minesweeper\Minesweeper.vcxproj", "{3B7BA844-8DF6-4F8C-8789-16204A22318B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{DFDF79FB-05F6-48BE-B2A6-7F4A6A1C68F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "raylib", "external\raylib\raylib.vcxproj", "{F267B3ED-370B-426F-97D2-9BE79C295075}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw", "external\raylib\glfw.vcxproj", "{9BD7F16A-48CE-4734-A083-4CC3D2823AB7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B7BA844-8DF6-4F8C-8789-16204A22318B}.Debug|x64.ActiveCfg = Debug|x64
+		{3B7BA844-8DF6-4F8C-8789-16204A22318B}.Debug|x64.Build.0 = Debug|x64
+		{3B7BA844-8DF6-4F8C-8789-16204A22318B}.Release|x64.ActiveCfg = Release|x64
+		{3B7BA844-8DF6-4F8C-8789-16204A22318B}.Release|x64.Build.0 = Release|x64
+		{F267B3ED-370B-426F-97D2-9BE79C295075}.Debug|x64.ActiveCfg = Debug|x64
+		{F267B3ED-370B-426F-97D2-9BE79C295075}.Debug|x64.Build.0 = Debug|x64
+		{F267B3ED-370B-426F-97D2-9BE79C295075}.Release|x64.ActiveCfg = Release|x64
+		{F267B3ED-370B-426F-97D2-9BE79C295075}.Release|x64.Build.0 = Release|x64
+		{9BD7F16A-48CE-4734-A083-4CC3D2823AB7}.Debug|x64.ActiveCfg = Debug|x64
+		{9BD7F16A-48CE-4734-A083-4CC3D2823AB7}.Debug|x64.Build.0 = Debug|x64
+		{9BD7F16A-48CE-4734-A083-4CC3D2823AB7}.Release|x64.ActiveCfg = Release|x64
+		{9BD7F16A-48CE-4734-A083-4CC3D2823AB7}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F267B3ED-370B-426F-97D2-9BE79C295075} = {DFDF79FB-05F6-48BE-B2A6-7F4A6A1C68F2}
+		{9BD7F16A-48CE-4734-A083-4CC3D2823AB7} = {DFDF79FB-05F6-48BE-B2A6-7F4A6A1C68F2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {34C07034-0B7E-411A-8370-5F4442116BB5}
+	EndGlobalSection
+EndGlobal
