@@ -30,9 +30,9 @@ const int cellNeighbors[9][2] = // Neighbor lookup
     { -1, -1 }, { 0, -1 }, { 1, -1 }
 };
 
-const int boardWidth = 10;
-const int boardHeight = 10;
-const int cellSize = 40;
+const int boardWidth = 9;
+const int boardHeight = 9;
+const int cellSize = 64;
 
 int flagCount = 0;
 int bombCount = 0;
@@ -46,18 +46,18 @@ bool firstClick = false;
 
 int main()
 {
-    const int screenWidth = 600;
-    const int screenHeight = 600;
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
 
     InitWindow(screenWidth, screenHeight, "Minesweeper");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
     // Init
-    board = new Cell*[boardHeight];
-    for (int i = 0; i < boardHeight; ++i)
+    board = new Cell*[boardWidth];
+    for (int i = 0; i < boardWidth; ++i)
     {
-        board[i] = new Cell[boardWidth];
+        board[i] = new Cell[boardHeight];
     }
     if (board == nullptr)
         return 0;
@@ -80,7 +80,7 @@ int main()
     }
 
     // Cleanup
-    for (int i = 0; i < boardHeight; ++i)
+    for (int i = 0; i < boardWidth; ++i)
     {
         delete[] board[i];
     }
@@ -155,6 +155,7 @@ void Update()
     if (IsMouseButtonUp(MOUSE_BUTTON_LEFT))
     {
         restartBtn->held = false;
+        restartBtn->clicked = false;
     }
     if (mouseX == boardWidth + 1 && mouseY == 1)
     {
@@ -164,7 +165,10 @@ void Update()
             restartBtn->held = true;
         }
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+        {
+            restartBtn->clicked = true;
             Init();
+        }
     }
     else
     {
@@ -182,6 +186,11 @@ void Update()
             if (mouseX == j && mouseY == i)
             {
                 board[j][i].hovered = true;
+                if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+                {
+                    if (board[j][i].clicked == false)
+                        restartBtn->held = true;
+                }
                 if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
                 {
                     if (board[j][i].flagged == false)
@@ -195,11 +204,6 @@ void Update()
                             FloodFill(j,   i-1);
                             FloodFill(j+1, i);
                             FloodFill(j,   i+1);
-
-                            FloodFill(j-1, i-1);
-                            FloodFill(j+1, i-1);
-                            FloodFill(j+1, i+1);
-                            FloodFill(j-1, i+1);
                         }
                     }
                 }
@@ -323,15 +327,13 @@ void DrawRestart(int x, int y)
     int textHalfHeight = fontSize / 2;
 
     Color fillColor = LIGHTGRAY;
-    if (restartBtn->held)
-    {
-        text = ":O";
+    if (restartBtn->clicked)
         fillColor = WHITE;
-    }
     else if (restartBtn->hovered)
-    {
         fillColor = BLUE;
-    }
+
+    if (restartBtn->held)
+        text = ":O";
 
     if (gameOver)
     {
@@ -368,9 +370,4 @@ void FloodFill(int x, int y)
     FloodFill(x,   y-1);
     FloodFill(x+1, y);
     FloodFill(x,   y+1);
-
-    FloodFill(x-1, y-1);
-    FloodFill(x+1, y-1);
-    FloodFill(x+1, y+1);
-    FloodFill(x-1, y+1);
 }
