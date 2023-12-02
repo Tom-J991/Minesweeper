@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #include <raylib.h>
 
@@ -36,7 +37,9 @@ const int cellSize = 64;
 
 int flagCount = 0;
 int bombCount = 0;
+int emptyCount = 0;
 int correctFlags = 0;
+int clickedCells = 0;
 
 bool gameStart = false;
 bool gameOver = false;
@@ -103,6 +106,7 @@ void Init()
 
     // Set bombs & defaults
     bombCount = 0;
+    emptyCount = 0;
     for (int i = 0; i < boardHeight; i++)
     {
         for (int j = 0; j < boardWidth; j++)
@@ -117,11 +121,13 @@ void Init()
             else
             {
                 board[j][i] = { 0, false };
+                emptyCount++;
             }
         }
     }
     flagCount = bombCount;
     correctFlags = 0;
+    clickedCells = 0;
 
     // Set values based on neighbors.
     for (int i = 0; i < boardHeight; i++)
@@ -196,6 +202,8 @@ void Update()
                     if (board[j][i].flagged == false)
                     {
                         board[j][i].clicked = true;
+                        clickedCells++;
+
                         if (board[j][i].isBomb == true)
                             gameOver = true;
                         else if (board[j][i].value == 0)
@@ -236,7 +244,7 @@ void Update()
     }
 
     // Check win condition.
-    if (correctFlags == bombCount)
+    if (clickedCells == emptyCount)
     {
         gameWon = true;
     }
@@ -365,6 +373,7 @@ void FloodFill(int x, int y)
         return;
 
     board[x][y].clicked = true;
+    clickedCells++;
 
     FloodFill(x-1, y);
     FloodFill(x,   y-1);
